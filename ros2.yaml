@@ -1,8 +1,8 @@
 vmType: vz
 
-cpus: 4
-memory: "12GiB"
-disk: "35GiB"
+cpus: __VM_CPUS__
+memory: "__VM_MEMORY__"
+disk: "__VM_DISK__"
 
 vmOpts:
   vz:
@@ -21,7 +21,7 @@ mounts:
     writable: true
 
 networks:
-  - socket: "/var/run/socket_vmnet.bridged.en1"
+  - socket: "/var/run/socket_vmnet.bridged.__WIFI_INTERFACE__"
 
 provision:
   - mode: system
@@ -31,28 +31,30 @@ provision:
 
       VM_USER="${LIMA_CIDATA_USER}"
 
-      # 1. Install Docker and enable on boot
+      # Install Docker and enable on boot
       curl -fsSL https://get.docker.com | sh
       usermod -aG docker "${VM_USER}"
       systemctl enable docker
       systemctl start docker
 
-      # 2. Install Desktop & VNC
+      # Install Desktop & VNC
       export DEBIAN_FRONTEND=noninteractive
       apt-get update
       apt-get install -y xfce4 xfce4-goodies tigervnc-standalone-server dbus-x11 xterm
 
-      # 3. Create VNC password and xstartup
+      # Create VNC password and xstartup
       mkdir -p /home/${VM_USER}/.vnc
-      echo "123456" | vncpasswd -f > /home/${VM_USER}/.vnc/passwd
+      echo "__VNC_PASSWORD__" | vncpasswd -f > /home/${VM_USER}/.vnc/passwd
       chmod 600 /home/${VM_USER}/.vnc/passwd
-
       printf '#!/bin/bash\nunset SESSION_MANAGER\nunset DBUS_SESSION_BUS_ADDRESS\nexec startxfce4\n' \
         > /home/${VM_USER}/.vnc/xstartup
       chmod +x /home/${VM_USER}/.vnc/xstartup
       chown -R ${VM_USER}:${VM_USER} /home/${VM_USER}/.vnc
 
-      # 4. VNC systemd service
+      # Set Linux user password for VNC unlock screen
+      echo "${VM_USER}:__LINUX_PASSWORD__" | chpasswd
+
+      # VNC systemd service
       cat > /etc/systemd/system/vncserver-ros2.service << VNCEOF
       [Unit]
       Description=VNC Remote Desktop for ROS2
