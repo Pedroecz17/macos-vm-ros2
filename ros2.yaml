@@ -77,7 +77,7 @@ provision:
       systemctl enable vncserver-ros2.service
       systemctl start vncserver-ros2.service
 
-      # 5. DDS network tuning
+      # DDS network tuning
       printf 'net.ipv4.ip_forward=1\nnet.core.rmem_max=2147483647\nnet.core.wmem_max=2147483647\nnet.core.rmem_default=26214400\nnet.core.wmem_default=26214400\n' \
         > /etc/sysctl.d/99-ros2-dds.conf
       sysctl --system
